@@ -1,10 +1,32 @@
-### IntelliJ IDEA ###
+### ═══════════════════════════════════════════
+###  Maven
+### ═══════════════════════════════════════════
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+### ═══════════════════════════════════════════
+###  IntelliJ IDEA
+### ═══════════════════════════════════════════
+.idea/
+*.iws
+*.iml
+*.ipr
 out/
 !**/src/main/**/out/
 !**/src/test/**/out/
 .kotlin
 
-### Eclipse ###
+### ═══════════════════════════════════════════
+###  Eclipse
+### ═══════════════════════════════════════════
 .apt_generated
 .classpath
 .factorypath
@@ -16,15 +38,59 @@ bin/
 !**/src/main/**/bin/
 !**/src/test/**/bin/
 
-### NetBeans ###
+### ═══════════════════════════════════════════
+###  NetBeans
+### ═══════════════════════════════════════════
 /nbproject/private/
 /nbbuild/
 /dist/
 /nbdist/
 /.nb-gradle/
 
-### VS Code ###
+### ═══════════════════════════════════════════
+###  VS Code
+### ═══════════════════════════════════════════
 .vscode/
 
-### Mac OS ###
+### ═══════════════════════════════════════════
+###  Java
+### ═══════════════════════════════════════════
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+hs_err_pid*
+replay_pid*
+
+### ═══════════════════════════════════════════
+###  Logs
+### ═══════════════════════════════════════════
+*.log
+logs/
+
+### ═══════════════════════════════════════════
+###  Ficheros de salida del batch
+### ═══════════════════════════════════════════
+output/
+
+### ═══════════════════════════════════════════
+###  Sistemas operativos
+### ═══════════════════════════════════════════
+# macOS
 .DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+### ═══════════════════════════════════════════
+###  Variables de entorno (credenciales)
+### ═══════════════════════════════════════════
+.env
+.env.*
+!.env.example
