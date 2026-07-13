@@ -1,7 +1,0 @@
-com\viewnext\facturabatch\listener\JobCompletionListener.class
-com\viewnext\facturabatch\runner\BatchRunner.class
-com\viewnext\facturabatch\model\Factura.class
-com\viewnext\facturabatch\FacturaBatchApplication.class
-com\viewnext\facturabatch\model\Factura$FacturaBuilder.class
-com\viewnext\facturabatch\mapper\FacturaRowMapper.class
-com\viewnext\facturabatch\config\BatchConfig.class
