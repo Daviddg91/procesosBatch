@@ -1,5 +1,6 @@
 package com.viewnext.facturabatch.e2e;
 
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.*;
 import org.springframework.batch.core.*;
 import org.springframework.batch.core.launch.JobLauncher;
@@ -32,8 +33,8 @@ import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TE
  *
  * <p>Each scenario uses two SQL/CSV fixture files:
  * <ul>
- *   <li><b>in/</b>  â€“ SQL script that populates the DB before the job runs.</li>
- *   <li><b>out/</b> â€“ Expected CSV file that is compared against the real output.</li>
+ *   <li><b>in/</b>  - SQL script that populates the DB before the job runs.</li>
+ *   <li><b>out/</b> - Expected CSV file that is compared against the real output.</li>
  * </ul>
  *
  * <p>The full pipeline validated per test:
@@ -48,10 +49,11 @@ import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TE
  * <p>Dynamic dates use the placeholder {@code {FECHA_HOY}} inside the {@code out/} files,
  * which is resolved at test time before comparison.
  */
+@Slf4j
 @SpringBootTest
 class ExtractFacturasEnd2EndTest {
 
-    // â”€â”€ Infrastructure â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // -- Infrastructure -------------------------------------------------------
 
     @Autowired private JobLauncher  jobLauncher;
     @Autowired private Job          extractFacturasJob;
@@ -68,24 +70,30 @@ class ExtractFacturasEnd2EndTest {
     private static final String PLACEHOLDER_FECHA_HOY = "{FECHA_HOY}";
 
     @BeforeEach
-    void limpiarEjecucionesAnteriores() {
+    void setUp(TestInfo testInfo) {
+        log.info("");
+        log.info("==================================================================");
+        log.info("  TEST E2E > {}", testInfo.getDisplayName());
+        log.info("==================================================================");
         new JobRepositoryTestUtils(jobRepository).removeJobExecutions();
     }
 
     @AfterEach
-    void limpiarFicherosGenerados() throws Exception {
+    void tearDown(TestInfo testInfo) throws Exception {
         Files.deleteIfExists(csvSalidaPath(HOY));
         Files.deleteIfExists(csvSalidaPath(FECHA_HISTORICA));
+        log.info("  TEST FINALIZADO: {}", testInfo.getDisplayName());
+        log.info("");
     }
 
     // =========================================================================
-    // Escenario 1 â€“ ExtracciÃ³n del dÃ­a de hoy
+    // Escenario 1 - Extraccion del dia de hoy
     // in:  e2e/in/escenario_01_hoy.sql
     // out: e2e/out/escenario_01_hoy.csv
     // =========================================================================
 
     @Test
-    @DisplayName("E2E-01: Job extrae sÃ³lo las facturas de hoy con extraccion_pago=0")
+    @DisplayName("E2E-01: Job extrae solo las facturas de hoy con extraccion_pago=0")
     @Sql(scripts = "classpath:e2e/in/escenario_01_hoy.sql", executionPhase = BEFORE_TEST_METHOD)
     @Sql(scripts = "classpath:e2e/in/cleanup.sql",          executionPhase = AFTER_TEST_METHOD)
     void e2e01_ExtraccionDeHoy_SoloFacturasPendientesDeHoy() throws Exception {
@@ -93,28 +101,28 @@ class ExtractFacturasEnd2EndTest {
 
         assertThat(ejecucion.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
 
-        // â”€â”€ Comparar CSV real vs esperado â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // -- Comparar CSV real vs esperado ------------------------------------
         assertCsvOutputMatchesExpected(
                 csvSalidaPath(HOY),
                 "e2e/out/escenario_01_hoy.csv",
                 HOY.toString());
 
-        // â”€â”€ Verificar estado final en BD â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-        assertExtraccionPago("FACT-HOY-001", 1);  // extraÃ­da
-        assertExtraccionPago("FACT-HOY-002", 1);  // extraÃ­da
+        // -- Verificar estado final en BD ------------------------------------
+        assertExtraccionPago("FACT-HOY-001", 1);  // extraida
+        assertExtraccionPago("FACT-HOY-002", 1);  // extraida
         assertExtraccionPago("FACT-HOY-003", 1);  // ya lo estaba
         assertExtraccionPago("FACT-HOY-004", 0);  // fecha futura, intacta
         assertExtraccionPago("FACT-HOY-005", 0);  // fecha pasada, intacta
     }
 
     // =========================================================================
-    // Escenario 2 â€“ ExtracciÃ³n histÃ³rica (fecha pasada como parÃ¡metro)
+    // Escenario 2 - Extraccion historica (fecha pasada como parametro)
     // in:  e2e/in/escenario_02_historico.sql
     // out: e2e/out/escenario_02_historico.csv
     // =========================================================================
 
     @Test
-    @DisplayName("E2E-02: Job extrae facturas de fecha histÃ³rica 2023-03-15 con extraccion_pago=0")
+    @DisplayName("E2E-02: Job extrae facturas de fecha historica 2023-03-15 con extraccion_pago=0")
     @Sql(scripts = "classpath:e2e/in/escenario_02_historico.sql", executionPhase = BEFORE_TEST_METHOD)
     @Sql(scripts = "classpath:e2e/in/cleanup.sql",                executionPhase = AFTER_TEST_METHOD)
     void e2e02_ExtraccionHistorica_SoloFacturasDeFechaParametro() throws Exception {
@@ -122,17 +130,17 @@ class ExtractFacturasEnd2EndTest {
 
         assertThat(ejecucion.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
 
-        // â”€â”€ Comparar CSV real vs esperado â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-        // La fecha histÃ³rica es fija (2023-03-15), no usa placeholder
+        // -- Comparar CSV real vs esperado ------------------------------------
+        // La fecha historica es fija (2023-03-15), no usa placeholder
         assertCsvOutputMatchesExpected(
                 csvSalidaPath(FECHA_HISTORICA),
                 "e2e/out/escenario_02_historico.csv",
                 null);
 
-        // â”€â”€ Verificar estado final en BD â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-        assertExtraccionPago("FACT-HIST-001", 1);  // extraÃ­da
-        assertExtraccionPago("FACT-HIST-002", 1);  // extraÃ­da
-        assertExtraccionPago("FACT-HIST-003", 1);  // extraÃ­da (estado Pagada, pero pago=0)
+        // -- Verificar estado final en BD ------------------------------------
+        assertExtraccionPago("FACT-HIST-001", 1);  // extraida
+        assertExtraccionPago("FACT-HIST-002", 1);  // extraida
+        assertExtraccionPago("FACT-HIST-003", 1);  // extraida (estado Pagada, pero pago=0)
         assertExtraccionPago("FACT-HIST-004", 1);  // ya lo estaba
         assertExtraccionPago("FACT-OTRA-001", 0);  // fecha distinta, intacta
 
@@ -143,13 +151,13 @@ class ExtractFacturasEnd2EndTest {
     }
 
     // =========================================================================
-    // Escenario 3 â€“ Volumen mixto de datos
+    // Escenario 3 - Volumen mixto de datos
     // in:  e2e/in/escenario_03_mixto.sql
     // out: e2e/out/escenario_03_mixto.csv
     // =========================================================================
 
     @Test
-    @DisplayName("E2E-03: Con datos mixtos, sÃ³lo se extraen las 3 facturas de hoy pendientes")
+    @DisplayName("E2E-03: Con datos mixtos, solo se extraen las 3 facturas de hoy pendientes")
     @Sql(scripts = "classpath:e2e/in/escenario_03_mixto.sql", executionPhase = BEFORE_TEST_METHOD)
     @Sql(scripts = "classpath:e2e/in/cleanup.sql",            executionPhase = AFTER_TEST_METHOD)
     void e2e03_DatosMixtos_SoloFacturasFiltradas() throws Exception {
@@ -158,13 +166,13 @@ class ExtractFacturasEnd2EndTest {
         assertThat(ejecucion.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
         assertThat(totalEscritas(ejecucion)).isEqualTo(3L);
 
-        // â”€â”€ Comparar CSV real vs esperado â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // -- Comparar CSV real vs esperado ------------------------------------
         assertCsvOutputMatchesExpected(
                 csvSalidaPath(HOY),
                 "e2e/out/escenario_03_mixto.csv",
                 HOY.toString());
 
-        // â”€â”€ Verificar estado final en BD â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // -- Verificar estado final en BD ------------------------------------
         assertExtraccionPago("FACT-MIX-001", 1);
         assertExtraccionPago("FACT-MIX-002", 1);
         assertExtraccionPago("FACT-MIX-003", 1);
@@ -174,13 +182,13 @@ class ExtractFacturasEnd2EndTest {
     }
 
     // =========================================================================
-    // Escenario 4 â€“ Sin facturas pendientes â†’ fichero sÃ³lo con cabecera
-    // in:  tabla vacÃ­a (cleanup previo)
+    // Escenario 4 - Sin facturas pendientes -> fichero solo con cabecera
+    // in:  tabla vacia (cleanup previo)
     // out: e2e/out/escenario_04_sin_pendientes.csv
     // =========================================================================
 
     @Test
-    @DisplayName("E2E-04: Sin facturas pendientes, el fichero se genera sÃ³lo con cabecera")
+    @DisplayName("E2E-04: Sin facturas pendientes, el fichero se genera solo con cabecera")
     @Sql(scripts = "classpath:e2e/in/cleanup.sql", executionPhase = BEFORE_TEST_METHOD)
     @Sql(scripts = "classpath:e2e/in/cleanup.sql", executionPhase = AFTER_TEST_METHOD)
     void e2e04_SinFacturasPendientes_FicheroVacioConCabecera() throws Exception {
@@ -196,29 +204,29 @@ class ExtractFacturasEnd2EndTest {
     }
 
     // =========================================================================
-    // Escenario 5 â€“ Idempotencia: relanzar el job no duplica extracciones
+    // Escenario 5 - Idempotencia: relanzar el job no duplica extracciones
     // in:  e2e/in/escenario_01_hoy.sql  (mismo escenario que E2E-01)
-    // out: e2e/out/escenario_01_hoy.csv (primera ejecuciÃ³n â†’ igual que E2E-01)
-    //      e2e/out/escenario_04_sin_pendientes.csv (segunda ejecuciÃ³n â†’ vacÃ­o)
+    // out: e2e/out/escenario_01_hoy.csv (primera ejecucion -> igual que E2E-01)
+    //      e2e/out/escenario_04_sin_pendientes.csv (segunda ejecucion -> vacio)
     // =========================================================================
 
     @Test
-    @DisplayName("E2E-05: Relanzar el job sobre facturas ya extraÃ­das no produce nuevas filas en el CSV")
+    @DisplayName("E2E-05: Relanzar el job sobre facturas ya extraidas no produce nuevas filas en el CSV")
     @Sql(scripts = "classpath:e2e/in/escenario_01_hoy.sql", executionPhase = BEFORE_TEST_METHOD)
     @Sql(scripts = "classpath:e2e/in/cleanup.sql",          executionPhase = AFTER_TEST_METHOD)
     void e2e05_Idempotencia_RejecutarJobNoExtraeDuplicados() throws Exception {
-        // Primera ejecuciÃ³n: extrae las 2 facturas pendientes
+        // Primera ejecucion: extrae las 2 facturas pendientes
         ejecutarJob(HOY.toString());
 
-        // Segunda ejecuciÃ³n: no debe haber nada pendiente
+        // Segunda ejecucion: no debe haber nada pendiente
         JobExecution segundaEjecucion = ejecutarJob(HOY.toString());
 
         assertThat(segundaEjecucion.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
         assertThat(totalEscritas(segundaEjecucion))
-                .as("Segunda ejecuciÃ³n no debe extraer ninguna factura")
+                .as("Segunda ejecucion no debe extraer ninguna factura")
                 .isZero();
 
-        // El CSV de la segunda ejecuciÃ³n sÃ³lo debe tener cabecera
+        // El CSV de la segunda ejecucion solo debe tener cabecera
         assertCsvOutputMatchesExpected(
                 csvSalidaPath(HOY),
                 "e2e/out/escenario_04_sin_pendientes.csv",
@@ -251,19 +259,19 @@ class ExtractFacturasEnd2EndTest {
      * <p>If {@code fechaHoy} is provided, the placeholder {@code {FECHA_HOY}}
      * in the expected file is replaced with the actual date string.
      *
-     * @param csvActual     path to the generated CSV file
-     * @param expectedResource  classpath location of the expected CSV (e.g. {@code e2e/out/escenario_01_hoy.csv})
-     * @param fechaHoy      today's date as string (yyyy-MM-dd), or {@code null} if no placeholder to replace
+     * @param csvActual        path to the generated CSV file
+     * @param expectedResource classpath location of the expected CSV
+     * @param fechaHoy         today's date as string (yyyy-MM-dd), or {@code null}
      */
     private void assertCsvOutputMatchesExpected(Path csvActual,
                                                  String expectedResource,
                                                  String fechaHoy) throws IOException {
         assertThat(csvActual).exists();
 
-        // â”€â”€ Load actual â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // -- Load actual ------------------------------------------------------
         List<String> lineasActuales = Files.readAllLines(csvActual);
 
-        // â”€â”€ Load expected and resolve placeholder â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // -- Load expected and resolve placeholder ----------------------------
         byte[] bytes = new ClassPathResource(expectedResource).getInputStream().readAllBytes();
         String expectedContent = new String(bytes, StandardCharsets.UTF_8).stripTrailing();
         if (fechaHoy != null) {
@@ -271,7 +279,7 @@ class ExtractFacturasEnd2EndTest {
         }
         List<String> lineasEsperadas = List.of(expectedContent.split("\\r?\\n"));
 
-        // â”€â”€ Compare headers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // -- Compare headers --------------------------------------------------
         assertThat(lineasActuales)
                 .as("El CSV debe tener al menos la cabecera")
                 .isNotEmpty();
@@ -279,7 +287,7 @@ class ExtractFacturasEnd2EndTest {
                 .as("La cabecera del CSV debe coincidir")
                 .isEqualTo(lineasEsperadas.get(0));
 
-        // â”€â”€ Compare data rows (sorted, order-independent) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // -- Compare data rows (sorted, order-independent) --------------------
         List<String> datosActuales  = sorted(lineasActuales.subList(1, lineasActuales.size()));
         List<String> datosEsperados = sorted(lineasEsperadas.subList(1, lineasEsperadas.size()));
 

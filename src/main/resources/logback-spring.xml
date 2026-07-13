@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Configuración de logging para la aplicación principal.
+  Activa con cualquier perfil (local, producción…).
+  Se puede sobreescribir nivel por perfil con <springProfile>.
+-->
+<configuration>
+
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %highlight(%-5level) %cyan([%-32.32logger{32}]) %msg%n</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <!-- ── Nuestro código: DEBUG en todos los perfiles ── -->
+    <logger name="com.viewnext.facturabatch" level="DEBUG" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+    </logger>
+
+    <!-- ── Spring Batch: INFO para ver el ciclo completo del job ── -->
+    <logger name="org.springframework.batch" level="INFO" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+    </logger>
+
+    <!-- ── SQL init: INFO para ver qué scripts se ejecutan al arrancar ── -->
+    <logger name="org.springframework.jdbc.datasource.init" level="INFO" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+    </logger>
+
+    <!-- ── HikariCP: solo conexión/desconexión del pool ── -->
+    <logger name="com.zaxxer.hikari" level="INFO" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+    </logger>
+
+    <!-- ── Root: WARN para no saturar con logs de frameworks ── -->
+    <root level="WARN">
+        <appender-ref ref="CONSOLE"/>
+    </root>
+
+</configuration>
+

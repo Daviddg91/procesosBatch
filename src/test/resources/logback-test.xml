@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Configuración de logging para la ejecución de tests.
+  Muestra en consola los logs relevantes del batch y silencia el ruido de frameworks.
+-->
+<configuration>
+
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} %highlight(%-5level) %cyan([%-32.32logger{32}]) %msg%n</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <!-- ── Nuestro código: DEBUG para ver todo el detalle ── -->
+    <logger name="com.viewnext.facturabatch" level="DEBUG" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+    </logger>
+
+    <!-- ── Spring Batch: INFO para seguir el flujo del job ── -->
+    <logger name="org.springframework.batch.core.job"       level="INFO" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+    </logger>
+    <logger name="org.springframework.batch.core.step"      level="INFO" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+    </logger>
+    <logger name="org.springframework.batch.core.launch"    level="INFO" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+    </logger>
+
+    <!-- ── SQL init: INFO para ver qué scripts se cargan ── -->
+    <logger name="org.springframework.jdbc.datasource.init" level="INFO" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+    </logger>
+
+    <!-- ── Root: solo WARN y superior para no saturar la salida ── -->
+    <root level="WARN">
+        <appender-ref ref="CONSOLE"/>
+    </root>
+
+</configuration>
+

@@ -1,6 +1,7 @@
 package com.viewnext.facturabatch.mapper;
 
 import com.viewnext.facturabatch.model.Factura;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -20,6 +21,7 @@ import static org.mockito.Mockito.when;
  * Unit tests for {@link FacturaRowMapper}.
  * Verifies that every column from the ResultSet is correctly mapped to the domain object.
  */
+@Slf4j
 @ExtendWith(MockitoExtension.class)
 class FacturaRowMapperTest {
 
@@ -47,7 +49,20 @@ class FacturaRowMapperTest {
         when(resultSet.getInt("extraccion_pago")).thenReturn(0);
         when(resultSet.getString("iban")).thenReturn("ES001");
 
+        log.info("[INPUT]  ResultSet row :");
+        log.info("         codigo_de_proveedor  = PROV001");
+        log.info("         codigo_de_factura    = FACT001");
+        log.info("         importe              = 100.00");
+        log.info("         divisa               = EUR");
+        log.info("         fecha_de_vencimiento = {}", dueDate);
+        log.info("         estado               = Pendiente");
+        log.info("         extraccion_pago      = 0");
+        log.info("         iban                 = ES001");
+
         Factura factura = mapper.mapRow(resultSet, 1);
+
+        log.info("[RESULT] Factura mapeada :");
+        logFactura(factura);
 
         assertThat(factura).isNotNull();
         assertThat(factura.getCodigoDeProveedor()).isEqualTo("PROV001");
@@ -63,16 +78,22 @@ class FacturaRowMapperTest {
     @Test
     @DisplayName("mapRow: extraccion_pago=1 se mapea correctamente")
     void givenExtractedFactura_whenMapRow_thenExtraccionPagoIsOne() throws Exception {
+        LocalDate hoy = LocalDate.now();
         when(resultSet.getString("codigo_de_proveedor")).thenReturn("PROV002");
         when(resultSet.getString("codigo_de_factura")).thenReturn("FACT002");
         when(resultSet.getBigDecimal("importe")).thenReturn(new BigDecimal("200.00"));
         when(resultSet.getString("divisa")).thenReturn("USD");
-        when(resultSet.getDate("fecha_de_vencimiento")).thenReturn(Date.valueOf(LocalDate.now()));
+        when(resultSet.getDate("fecha_de_vencimiento")).thenReturn(Date.valueOf(hoy));
         when(resultSet.getString("estado")).thenReturn("Pagada");
         when(resultSet.getInt("extraccion_pago")).thenReturn(1);
         when(resultSet.getString("iban")).thenReturn("ES002");
 
+        log.info("[INPUT]  extraccion_pago = 1  (factura ya extraida)  estado = Pagada");
+
         Factura factura = mapper.mapRow(resultSet, 1);
+
+        log.info("[RESULT] extraccion_pago = {}  estado = {}",
+                factura.getExtraccionPago(), factura.getEstado());
 
         assertThat(factura.getExtraccionPago()).isEqualTo(1);
         assertThat(factura.getEstado()).isEqualTo("Pagada");
@@ -92,8 +113,27 @@ class FacturaRowMapperTest {
         when(resultSet.getInt("extraccion_pago")).thenReturn(0);
         when(resultSet.getString("iban")).thenReturn("ES003");
 
+        log.info("[INPUT]  importe (BigDecimal) = {}", importe.toPlainString());
+
         Factura factura = mapper.mapRow(resultSet, 1);
 
+        log.info("[RESULT] importe mapeado     = {}", factura.getImporte().toPlainString());
+        log.info("         iguales por comparacion: {}",
+                factura.getImporte().compareTo(importe) == 0);
+
         assertThat(factura.getImporte()).isEqualByComparingTo(importe);
+    }
+
+    // -- Helper ---------------------------------------------------------------
+
+    private void logFactura(Factura f) {
+        log.info("         codigoDeProveedor  = {}", f.getCodigoDeProveedor());
+        log.info("         codigoDeFactura    = {}", f.getCodigoDeFactura());
+        log.info("         importe            = {}", f.getImporte());
+        log.info("         divisa             = {}", f.getDivisa());
+        log.info("         fechaDeVencimiento = {}", f.getFechaDeVencimiento());
+        log.info("         estado             = {}", f.getEstado());
+        log.info("         extraccionPago     = {}", f.getExtraccionPago());
+        log.info("         iban               = {}", f.getIban());
     }
 }

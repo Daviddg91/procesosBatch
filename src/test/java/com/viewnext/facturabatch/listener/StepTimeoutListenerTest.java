@@ -1,5 +1,6 @@
 package com.viewnext.facturabatch.listener;
 
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -18,16 +19,8 @@ import static org.mockito.Mockito.*;
 
 /**
  * Unit tests for {@link StepTimeoutListener}.
- *
- * <p>Verifica:
- * <ul>
- *   <li>Que {@code beforeStep} programa el watchdog sin lanzar excepción.</li>
- *   <li>Que {@code afterStep} devuelve {@code null} (no altera el ExitStatus).</li>
- *   <li>Que {@code afterStep} cancela el watchdog cuando el step termina a tiempo.</li>
- *   <li>Que {@code setTerminateOnly()} es invocado cuando el timeout se agota.</li>
- *   <li>Que {@code afterStep} sin {@code beforeStep} previo no lanza excepción.</li>
- * </ul>
  */
+@Slf4j
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 class StepTimeoutListenerTest {
@@ -48,41 +41,62 @@ class StepTimeoutListenerTest {
     @Test
     @DisplayName("beforeStep: no lanza excepción y programa el watchdog")
     void givenStepExecution_whenBeforeStep_thenNoException() {
-        ReflectionTestUtils.setField(listener, "timeoutSeconds", 3600L);
+        long timeout = 3600L;
+        ReflectionTestUtils.setField(listener, "timeoutSeconds", timeout);
+
+        log.info("[INPUT]  step          = extractFacturasStep");
+        log.info("[INPUT]  timeoutSeconds = {} s  (watchdog programado)", timeout);
 
         assertThatCode(() -> listener.beforeStep(stepExecution)).doesNotThrowAnyException();
+
+        log.info("[RESULT] beforeStep ejecutado  ->  watchdog activo sin excepcion");
     }
 
     // ── afterStep ────────────────────────────────────────────────────────────────
 
     @Test
-    @DisplayName("afterStep: devuelve null — no modifica el ExitStatus del step")
+    @DisplayName("afterStep: devuelve null (no modifica el ExitStatus del step)")
     void givenStepExecution_whenAfterStep_thenReturnsNull() {
-        ReflectionTestUtils.setField(listener, "timeoutSeconds", 3600L);
+        long timeout = 3600L;
+        ReflectionTestUtils.setField(listener, "timeoutSeconds", timeout);
         listener.beforeStep(stepExecution);
 
+        log.info("[INPUT]  timeoutSeconds = {}  ->  step finaliza ANTES del timeout", timeout);
+
         ExitStatus result = listener.afterStep(stepExecution);
+
+        log.info("[RESULT] ExitStatus devuelto = {}  (null = no modifica el estado)", result);
 
         assertThat(result).isNull();
     }
 
     @Test
-    @DisplayName("afterStep: cancela el watchdog cuando el step termina antes del timeout")
+    @DisplayName("afterStep: cancela el watchdog si el step termina antes del timeout")
     void givenStepFinishedBeforeTimeout_whenAfterStep_thenWatchdogCancelledAndSetTerminateOnlyNeverCalled() {
-        ReflectionTestUtils.setField(listener, "timeoutSeconds", 3600L);
+        long timeout = 3600L;
+        ReflectionTestUtils.setField(listener, "timeoutSeconds", timeout);
+
+        log.info("[INPUT]  timeoutSeconds = {}  ->  step completa antes de expirar", timeout);
+
         listener.beforeStep(stepExecution);
         listener.afterStep(stepExecution);
 
-        // El watchdog no debe haber disparado: setTerminateOnly() jamás se llama
         verify(stepExecution, never()).setTerminateOnly();
+
+        log.info("[RESULT] setTerminateOnly() NO invocado  ->  watchdog cancelado correctamente");
     }
 
     @Test
     @DisplayName("afterStep sin beforeStep previo: no lanza excepción (timeoutFuture es null)")
     void givenNoBeforeStep_whenAfterStep_thenNoException() {
-        ReflectionTestUtils.setField(listener, "timeoutSeconds", 3600L);
+        long timeout = 3600L;
+        ReflectionTestUtils.setField(listener, "timeoutSeconds", timeout);
+
+        log.info("[INPUT]  beforeStep     = no llamado (timeoutFuture = null)");
 
         assertThatCode(() -> listener.afterStep(stepExecution)).doesNotThrowAnyException();
+
+        log.info("[RESULT] afterStep maneja null future sin excepcion");
     }
 
     // ── Timeout expirado ─────────────────────────────────────────────────────────
@@ -90,27 +104,34 @@ class StepTimeoutListenerTest {
     @Test
     @DisplayName("timeout expirado: setTerminateOnly() es invocado sobre el StepExecution")
     void givenTimeoutExpired_whenBeforeStep_thenSetTerminateOnlyCalled() throws InterruptedException {
-        // Timeout de 0 segundos → el watchdog se ejecuta inmediatamente
-        ReflectionTestUtils.setField(listener, "timeoutSeconds", 0L);
+        long timeout = 0L;
+        ReflectionTestUtils.setField(listener, "timeoutSeconds", timeout);
+
+        log.info("[INPUT]  timeoutSeconds = {}  ->  watchdog dispara inmediatamente", timeout);
 
         listener.beforeStep(stepExecution);
-
-        // Breve espera para que el ScheduledExecutorService dispare la tarea
         Thread.sleep(300);
 
         verify(stepExecution, times(1)).setTerminateOnly();
+
+        log.info("[RESULT] setTerminateOnly() invocado 1 vez  ->  step interrumpido por timeout");
     }
 
     @Test
-    @DisplayName("timeout expirado y afterStep llamado después: afterStep no lanza excepción (future.isDone()=true)")
+    @DisplayName("timeout ya expirado + afterStep: afterStep no lanza excepción (future.isDone=true)")
     void givenTimeoutFired_whenAfterStep_thenNoException() throws InterruptedException {
-        ReflectionTestUtils.setField(listener, "timeoutSeconds", 0L);
+        long timeout = 0L;
+        ReflectionTestUtils.setField(listener, "timeoutSeconds", timeout);
+
+        log.info("[INPUT]  timeoutSeconds = {}  ->  watchdog dispara, luego se llama afterStep", timeout);
 
         listener.beforeStep(stepExecution);
-        Thread.sleep(300); // esperar que el watchdog se ejecute
+        Thread.sleep(300);
 
-        // afterStep con future ya ejecutado (isDone=true) no debe lanzar excepción
+        log.info("[INPUT]  future.isDone() = true  (timeout ya ejecutado)");
+
         assertThatCode(() -> listener.afterStep(stepExecution)).doesNotThrowAnyException();
+
+        log.info("[RESULT] afterStep sobre future completado  ->  sin excepcion");
     }
 }
-

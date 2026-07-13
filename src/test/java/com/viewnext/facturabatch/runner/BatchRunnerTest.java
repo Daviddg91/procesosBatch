@@ -1,5 +1,6 @@
 package com.viewnext.facturabatch.runner;
 
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -23,16 +24,8 @@ import static org.mockito.Mockito.*;
 
 /**
  * Unit tests for {@link BatchRunner}.
- *
- * <p>Verifica:
- * <ul>
- *   <li>Que se usa {@code LocalDate.now()} cuando {@code fechaFija} está vacía o es null.</li>
- *   <li>Que se usa la fecha configurada cuando {@code fechaFija} tiene valor.</li>
- *   <li>Que {@code jobLauncher.run()} es invocado exactamente una vez con los parámetros correctos.</li>
- *   <li>Que el parámetro {@code timestamp} siempre está presente.</li>
- *   <li>Que las fechas históricas se pasan correctamente al job.</li>
- * </ul>
  */
+@Slf4j
 @ExtendWith(MockitoExtension.class)
 class BatchRunnerTest {
 
@@ -55,9 +48,13 @@ class BatchRunnerTest {
     void givenEmptyFechaFija_whenEjecutarJob_thenUsesToday() throws Exception {
         ReflectionTestUtils.setField(batchRunner, "fechaFija", "");
 
+        log.info("[INPUT]  fechaFija = \"\"  (vacio)");
+
         batchRunner.ejecutarJob();
 
         JobParameters params = captureJobParameters();
+        log.info("[RESULT] params.fecha = {}  (= hoy: {})", params.getString("fecha"), LocalDate.now());
+
         assertThat(params.getString("fecha")).isEqualTo(LocalDate.now().toString());
     }
 
@@ -66,9 +63,13 @@ class BatchRunnerTest {
     void givenNullFechaFija_whenEjecutarJob_thenUsesToday() throws Exception {
         ReflectionTestUtils.setField(batchRunner, "fechaFija", null);
 
+        log.info("[INPUT]  fechaFija = null");
+
         batchRunner.ejecutarJob();
 
         JobParameters params = captureJobParameters();
+        log.info("[RESULT] params.fecha = {}  (= hoy: {})", params.getString("fecha"), LocalDate.now());
+
         assertThat(params.getString("fecha")).isEqualTo(LocalDate.now().toString());
     }
 
@@ -77,21 +78,30 @@ class BatchRunnerTest {
     void givenBlankFechaFija_whenEjecutarJob_thenUsesToday() throws Exception {
         ReflectionTestUtils.setField(batchRunner, "fechaFija", "   ");
 
+        log.info("[INPUT]  fechaFija = \"   \"  (solo espacios)");
+
         batchRunner.ejecutarJob();
 
         JobParameters params = captureJobParameters();
+        log.info("[RESULT] params.fecha = {}  (= hoy: {})", params.getString("fecha"), LocalDate.now());
+
         assertThat(params.getString("fecha")).isEqualTo(LocalDate.now().toString());
     }
 
     @Test
     @DisplayName("ejecutarJob: fechaFija con valor → se usa esa fecha")
     void givenFechaFija_whenEjecutarJob_thenUsesThatDate() throws Exception {
-        ReflectionTestUtils.setField(batchRunner, "fechaFija", "2023-03-15");
+        String fechaFija = "2023-03-15";
+        ReflectionTestUtils.setField(batchRunner, "fechaFija", fechaFija);
+
+        log.info("[INPUT]  fechaFija = \"{}\"", fechaFija);
 
         batchRunner.ejecutarJob();
 
         JobParameters params = captureJobParameters();
-        assertThat(params.getString("fecha")).isEqualTo("2023-03-15");
+        log.info("[RESULT] params.fecha = {}", params.getString("fecha"));
+
+        assertThat(params.getString("fecha")).isEqualTo(fechaFija);
     }
 
     @Test
@@ -100,9 +110,13 @@ class BatchRunnerTest {
         String fechaHistorica = "2020-01-15";
         ReflectionTestUtils.setField(batchRunner, "fechaFija", fechaHistorica);
 
+        log.info("[INPUT]  fechaFija = \"{}\"  (fecha historica)", fechaHistorica);
+
         batchRunner.ejecutarJob();
 
         JobParameters params = captureJobParameters();
+        log.info("[RESULT] params.fecha = {}  (pasada intacta al job)", params.getString("fecha"));
+
         assertThat(params.getString("fecha")).isEqualTo(fechaHistorica);
     }
 
@@ -116,6 +130,9 @@ class BatchRunnerTest {
         batchRunner.ejecutarJob();
 
         JobParameters params = captureJobParameters();
+        log.info("[RESULT] params.fecha     = {}", params.getString("fecha"));
+        log.info("[RESULT] params.timestamp = {}", params.getLong("timestamp"));
+
         assertThat(params.getLong("timestamp")).isNotNull();
     }
 
@@ -130,6 +147,11 @@ class BatchRunnerTest {
 
         JobParameters params = captureJobParameters();
         Long timestamp = params.getLong("timestamp");
+
+        log.info("[INPUT]  rango       = [{}, {}]", antes, despues);
+        log.info("[RESULT] timestamp   = {}  (dentro del rango: {})", timestamp,
+                timestamp != null && timestamp >= antes && timestamp <= despues);
+
         assertThat(timestamp).isBetween(antes, despues);
     }
 
@@ -143,6 +165,7 @@ class BatchRunnerTest {
         batchRunner.ejecutarJob();
 
         verify(jobLauncher, times(1)).run(eq(extractFacturasJob), any(JobParameters.class));
+        log.info("[RESULT] jobLauncher.run() invocado exactamente 1 vez con extractFacturasJob");
     }
 
     @Test
@@ -153,6 +176,7 @@ class BatchRunnerTest {
         batchRunner.ejecutarJob();
 
         verify(jobLauncher).run(eq(extractFacturasJob), any(JobParameters.class));
+        log.info("[RESULT] job lanzado = extractFacturasJob (correcto)");
     }
 
     @Test
@@ -160,7 +184,11 @@ class BatchRunnerTest {
     void givenSuccessfulJobLauncher_whenEjecutarJob_thenNoException() {
         ReflectionTestUtils.setField(batchRunner, "fechaFija", "");
 
+        log.info("[INPUT]  jobLauncher configurado para devolver jobExecution sin excepcion");
+
         assertThatCode(() -> batchRunner.ejecutarJob()).doesNotThrowAnyException();
+
+        log.info("[RESULT] ejecutarJob() completado sin excepcion");
     }
 
     // ── Helper ───────────────────────────────────────────────────────────────────

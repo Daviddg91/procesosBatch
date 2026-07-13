@@ -44,11 +44,11 @@ public class StepTimeoutListener implements StepExecutionListener {
 
     @Override
     public void beforeStep(StepExecution stepExecution) {
-        log.info("⏱  Step '{}' iniciado — timeout configurado en {} segundos.",
+        log.info("[STEP] '{}' iniciado - timeout configurado en {} segundos.",
                 stepExecution.getStepName(), timeoutSeconds);
 
         timeoutFuture = scheduler.schedule(() -> {
-            log.warn("⚠️  Step '{}' ha superado el timeout de {} segundos. " +
+            log.warn("[TIMEOUT] Step '{}' ha superado el limite de {} segundos. " +
                             "Solicitando parada controlada...",
                     stepExecution.getStepName(), timeoutSeconds);
             stepExecution.setTerminateOnly();
@@ -60,7 +60,7 @@ public class StepTimeoutListener implements StepExecutionListener {
     public ExitStatus afterStep(StepExecution stepExecution) {
         if (timeoutFuture != null && !timeoutFuture.isDone()) {
             timeoutFuture.cancel(false);
-            log.info("✅  Step '{}' finalizado antes del timeout. Watchdog cancelado.",
+            log.info("[STEP] '{}' finalizado antes del timeout. Watchdog cancelado.",
                     stepExecution.getStepName());
         }
         // Devolvemos null para no modificar el ExitStatus del step

@@ -18,10 +18,10 @@ import java.time.LocalDate;
  *
  * <p>El cron y la zona horaria se configuran en {@code application.yml}:
  * <pre>
- *   batch.schedule.cron      → expresión cron (por defecto "0 0 2 * * *", cada día a las 02:00)
- *   batch.schedule.time-zone → zona horaria           (por defecto "Europe/Madrid")
- *   batch.job.timeout-seconds→ duración máxima del step en segundos (por defecto 3600)
- *   batch.job.fecha          → fecha fija yyyy-MM-dd; vacío = fecha actual
+ *   batch.schedule.cron       - expresión cron (por defecto "0 0 2 * * *", cada día a las 02:00)
+ *   batch.schedule.time-zone  - zona horaria   (por defecto "Europe/Madrid")
+ *   batch.job.timeout-seconds - duración máxima del step en segundos (por defecto 3600)
+ *   batch.job.fecha           - fecha fija yyyy-MM-dd; vacío = fecha actual
  * </pre>
  *
  * <p>Para reprocesar una fecha histórica sin recompilar basta con arrancar con:
@@ -56,15 +56,15 @@ public class BatchRunner {
      * cualquier cambio en el YAML requiere reiniciar la aplicación.
      */
     @Scheduled(
-            cron     = "${batch.schedule.cron:0 0 2 * * *}",
-            zone     = "${batch.schedule.time-zone:Europe/Madrid}"
+            cron = "${batch.schedule.cron:0 0 2 * * *}",
+            zone = "${batch.schedule.time-zone:Europe/Madrid}"
     )
     public void ejecutarJob() throws Exception {
         String fecha = (fechaFija != null && !fechaFija.isBlank())
                 ? fechaFija
                 : LocalDate.now().toString();
 
-        log.info("⏰ Planificación activada — lanzando extracción de facturas para la fecha: {}", fecha);
+        log.info("[CRON] Planificacion activada - lanzando extraccion de facturas para la fecha: {}", fecha);
 
         JobParameters params = new JobParametersBuilder()
                 .addString("fecha", fecha)

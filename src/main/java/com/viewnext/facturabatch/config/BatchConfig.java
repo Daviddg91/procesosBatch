@@ -1,5 +1,6 @@
 package com.viewnext.facturabatch.config;
 
+import com.viewnext.facturabatch.listener.ItemLoggerListener;
 import com.viewnext.facturabatch.listener.JobCompletionListener;
 import com.viewnext.facturabatch.listener.StepTimeoutListener;
 import com.viewnext.facturabatch.mapper.FacturaRowMapper;
@@ -175,13 +176,16 @@ public class BatchConfig {
             PlatformTransactionManager transactionManager,
             JdbcCursorItemReader<Factura> facturaItemReader,
             CompositeItemWriter<Factura> compositeFacturaWriter,
-            StepTimeoutListener stepTimeoutListener) {
+            StepTimeoutListener stepTimeoutListener,
+            ItemLoggerListener itemLoggerListener) {
 
         return new StepBuilder("extractFacturasStep", jobRepository)
                 .<Factura, Factura>chunk(10, transactionManager)
                 .reader(facturaItemReader)
                 .writer(compositeFacturaWriter)
                 .listener(stepTimeoutListener)
+                .listener((org.springframework.batch.core.ItemReadListener<Factura>) itemLoggerListener)
+                .listener((org.springframework.batch.core.ItemWriteListener<Factura>) itemLoggerListener)
                 .build();
     }
 
