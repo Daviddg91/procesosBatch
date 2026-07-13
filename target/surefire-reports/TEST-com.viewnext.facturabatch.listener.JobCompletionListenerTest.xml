@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="com.viewnext.facturabatch.config.BatchConfigTest" time="0.176" tests="7" errors="0" skipped="0" failures="0">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="com.viewnext.facturabatch.listener.JobCompletionListenerTest" time="0.46" tests="7" errors="0" skipped="0" failures="0">
   <properties>
     <property name="java.specification.version" value="17"/>
     <property name="sun.cpu.isalist" value="amd64"/>
@@ -30,6 +30,8 @@
     <property name="line.separator" value="&#10;"/>
     <property name="java.vm.specification.vendor" value="Oracle Corporation"/>
     <property name="java.specification.name" value="Java Platform API Specification"/>
+    <property name="FILE_LOG_CHARSET" value="windows-1252"/>
+    <property name="java.awt.headless" value="true"/>
     <property name="surefire.real.class.path" value="C:\Users\Usuario\AppData\Local\Temp\surefire5231539494749585618\surefirebooter-20260713123559574_3.jar"/>
     <property name="user.script" value=""/>
     <property name="sun.management.compiler" value="HotSpot 64-Bit Tiered Compilers"/>
@@ -43,11 +45,14 @@
     <property name="localRepository" value="C:\Users\Usuario\.m2\repository"/>
     <property name="java.vendor.url.bug" value="https://bugreport.java.com/bugreport/"/>
     <property name="java.io.tmpdir" value="C:\Users\Usuario\AppData\Local\Temp\"/>
+    <property name="com.zaxxer.hikari.pool_number" value="1"/>
     <property name="java.version" value="17.0.12"/>
     <property name="user.dir" value="C:\Users\Usuario\Desktop\fechas\factura-batch"/>
     <property name="os.arch" value="amd64"/>
     <property name="java.vm.specification.name" value="Java Virtual Machine Specification"/>
+    <property name="PID" value="19328"/>
     <property name="sun.os.patch.level" value=""/>
+    <property name="CONSOLE_LOG_CHARSET" value="windows-1252"/>
     <property name="native.encoding" value="Cp1252"/>
     <property name="java.library.path" value="C:\Program Files\Java\jdk-17\bin;C:\WINDOWS\Sun\Java\bin;C:\WINDOWS\system32;C:\WINDOWS;C:\Program Files\Common Files\Oracle\Java\javapath;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;C:\Program Files\TortoiseGit\bin;C:\apache-maven\bin;C:\Program Files\Docker\cli-plugins;;C:\Program Files\Docker\Docker\resources\bin;C:\ProgramData\chocolatey\bin;C:\Users\Usuario\AppData\Local\Microsoft\WindowsApps;C:\Users\Usuario\AppData\Local\Programs\Git\cmd;C:\Users\Usuario\AppData\Local\Programs\Microsoft VS Code\bin;C:\Users\Usuario\AppData\Local\Microsoft\WinGet\Packages\GitHub.Copilot_Microsoft.Winget.Source_8wekyb3d8bbwe;;."/>
     <property name="java.vm.info" value="mixed mode, sharing"/>
@@ -56,11 +61,32 @@
     <property name="sun.io.unicode.encoding" value="UnicodeLittle"/>
     <property name="java.class.version" value="61.0"/>
   </properties>
-  <testcase name="givenNullOrBlank_whenParseFecha_thenReturnToday(String)[1]" classname="com.viewnext.facturabatch.config.BatchConfigTest" time="0.098"/>
-  <testcase name="givenNullOrBlank_whenParseFecha_thenReturnToday(String)[2]" classname="com.viewnext.facturabatch.config.BatchConfigTest" time="0.002"/>
-  <testcase name="givenNullOrBlank_whenParseFecha_thenReturnToday(String)[3]" classname="com.viewnext.facturabatch.config.BatchConfigTest" time="0.0"/>
-  <testcase name="givenNullOrBlank_whenParseFecha_thenReturnToday(String)[4]" classname="com.viewnext.facturabatch.config.BatchConfigTest" time="0.001"/>
-  <testcase name="givenValidDate_whenParseFecha_thenReturnLocalDate" classname="com.viewnext.facturabatch.config.BatchConfigTest" time="0.005"/>
-  <testcase name="givenLeapYearDate_whenParseFecha_thenReturnCorrectDate" classname="com.viewnext.facturabatch.config.BatchConfigTest" time="0.002"/>
-  <testcase name="givenInvalidFormat_whenParseFecha_thenThrowException" classname="com.viewnext.facturabatch.config.BatchConfigTest" time="0.003"/>
+  <testcase name="givenCompletedJob_whenAfterJob_thenLogsWriteCount" classname="com.viewnext.facturabatch.listener.JobCompletionListenerTest" time="0.375">
+    <system-out><![CDATA[2026-07-13T12:36:04.183+02:00  INFO 19328 --- [           main] c.v.f.listener.JobCompletionListener     : Job 'extractFacturasJob' completado correctamente. Facturas procesadas en la ejecución: 5
+]]></system-out>
+  </testcase>
+  <testcase name="givenJobExecution_whenBeforeJob_thenNoException" classname="com.viewnext.facturabatch.listener.JobCompletionListenerTest" time="0.012">
+    <system-out><![CDATA[2026-07-13T12:36:04.212+02:00  INFO 19328 --- [           main] c.v.f.listener.JobCompletionListener     : Iniciando job 'extractFacturasJob' con parámetros: {}
+]]></system-out>
+  </testcase>
+  <testcase name="givenFailedJobWithNoExceptions_whenAfterJob_thenNoException" classname="com.viewnext.facturabatch.listener.JobCompletionListenerTest" time="0.009">
+    <system-out><![CDATA[2026-07-13T12:36:04.228+02:00 ERROR 19328 --- [           main] c.v.f.listener.JobCompletionListener     : Job 'extractFacturasJob' finalizado con estado: FAILED. Errores: []
+]]></system-out>
+  </testcase>
+  <testcase name="givenCompletedJobWithNoSteps_whenAfterJob_thenWriteCountIsZero" classname="com.viewnext.facturabatch.listener.JobCompletionListenerTest" time="0.009">
+    <system-out><![CDATA[2026-07-13T12:36:04.240+02:00  INFO 19328 --- [           main] c.v.f.listener.JobCompletionListener     : Job 'extractFacturasJob' completado correctamente. Facturas procesadas en la ejecución: 0
+]]></system-out>
+  </testcase>
+  <testcase name="givenFailedJob_whenAfterJob_thenLogsAllFailureExceptions" classname="com.viewnext.facturabatch.listener.JobCompletionListenerTest" time="0.008">
+    <system-out><![CDATA[2026-07-13T12:36:04.250+02:00 ERROR 19328 --- [           main] c.v.f.listener.JobCompletionListener     : Job 'extractFacturasJob' finalizado con estado: FAILED. Errores: [java.lang.RuntimeException: error de prueba]
+]]></system-out>
+  </testcase>
+  <testcase name="givenStoppedJob_whenAfterJob_thenErrorBranchExecuted" classname="com.viewnext.facturabatch.listener.JobCompletionListenerTest" time="0.008">
+    <system-out><![CDATA[2026-07-13T12:36:04.259+02:00 ERROR 19328 --- [           main] c.v.f.listener.JobCompletionListener     : Job 'extractFacturasJob' finalizado con estado: STOPPED. Errores: []
+]]></system-out>
+  </testcase>
+  <testcase name="givenCompletedJobWithMultipleSteps_whenAfterJob_thenSumsAllWriteCounts" classname="com.viewnext.facturabatch.listener.JobCompletionListenerTest" time="0.015">
+    <system-out><![CDATA[2026-07-13T12:36:04.276+02:00  INFO 19328 --- [           main] c.v.f.listener.JobCompletionListener     : Job 'extractFacturasJob' completado correctamente. Facturas procesadas en la ejecución: 10
+]]></system-out>
+  </testcase>
 </testsuite>

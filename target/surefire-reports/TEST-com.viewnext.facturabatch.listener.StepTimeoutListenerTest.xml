@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="com.viewnext.facturabatch.config.BatchConfigTest" time="0.176" tests="7" errors="0" skipped="0" failures="0">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="com.viewnext.facturabatch.listener.StepTimeoutListenerTest" time="0.663" tests="6" errors="0" skipped="0" failures="0">
   <properties>
     <property name="java.specification.version" value="17"/>
     <property name="sun.cpu.isalist" value="amd64"/>
@@ -30,6 +30,8 @@
     <property name="line.separator" value="&#10;"/>
     <property name="java.vm.specification.vendor" value="Oracle Corporation"/>
     <property name="java.specification.name" value="Java Platform API Specification"/>
+    <property name="FILE_LOG_CHARSET" value="windows-1252"/>
+    <property name="java.awt.headless" value="true"/>
     <property name="surefire.real.class.path" value="C:\Users\Usuario\AppData\Local\Temp\surefire5231539494749585618\surefirebooter-20260713123559574_3.jar"/>
     <property name="user.script" value=""/>
     <property name="sun.management.compiler" value="HotSpot 64-Bit Tiered Compilers"/>
@@ -43,11 +45,14 @@
     <property name="localRepository" value="C:\Users\Usuario\.m2\repository"/>
     <property name="java.vendor.url.bug" value="https://bugreport.java.com/bugreport/"/>
     <property name="java.io.tmpdir" value="C:\Users\Usuario\AppData\Local\Temp\"/>
+    <property name="com.zaxxer.hikari.pool_number" value="1"/>
     <property name="java.version" value="17.0.12"/>
     <property name="user.dir" value="C:\Users\Usuario\Desktop\fechas\factura-batch"/>
     <property name="os.arch" value="amd64"/>
     <property name="java.vm.specification.name" value="Java Virtual Machine Specification"/>
+    <property name="PID" value="19328"/>
     <property name="sun.os.patch.level" value=""/>
+    <property name="CONSOLE_LOG_CHARSET" value="windows-1252"/>
     <property name="native.encoding" value="Cp1252"/>
     <property name="java.library.path" value="C:\Program Files\Java\jdk-17\bin;C:\WINDOWS\Sun\Java\bin;C:\WINDOWS\system32;C:\WINDOWS;C:\Program Files\Common Files\Oracle\Java\javapath;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;C:\Program Files\TortoiseGit\bin;C:\apache-maven\bin;C:\Program Files\Docker\cli-plugins;;C:\Program Files\Docker\Docker\resources\bin;C:\ProgramData\chocolatey\bin;C:\Users\Usuario\AppData\Local\Microsoft\WindowsApps;C:\Users\Usuario\AppData\Local\Programs\Git\cmd;C:\Users\Usuario\AppData\Local\Programs\Microsoft VS Code\bin;C:\Users\Usuario\AppData\Local\Microsoft\WinGet\Packages\GitHub.Copilot_Microsoft.Winget.Source_8wekyb3d8bbwe;;."/>
     <property name="java.vm.info" value="mixed mode, sharing"/>
@@ -56,11 +61,29 @@
     <property name="sun.io.unicode.encoding" value="UnicodeLittle"/>
     <property name="java.class.version" value="61.0"/>
   </properties>
-  <testcase name="givenNullOrBlank_whenParseFecha_thenReturnToday(String)[1]" classname="com.viewnext.facturabatch.config.BatchConfigTest" time="0.098"/>
-  <testcase name="givenNullOrBlank_whenParseFecha_thenReturnToday(String)[2]" classname="com.viewnext.facturabatch.config.BatchConfigTest" time="0.002"/>
-  <testcase name="givenNullOrBlank_whenParseFecha_thenReturnToday(String)[3]" classname="com.viewnext.facturabatch.config.BatchConfigTest" time="0.0"/>
-  <testcase name="givenNullOrBlank_whenParseFecha_thenReturnToday(String)[4]" classname="com.viewnext.facturabatch.config.BatchConfigTest" time="0.001"/>
-  <testcase name="givenValidDate_whenParseFecha_thenReturnLocalDate" classname="com.viewnext.facturabatch.config.BatchConfigTest" time="0.005"/>
-  <testcase name="givenLeapYearDate_whenParseFecha_thenReturnCorrectDate" classname="com.viewnext.facturabatch.config.BatchConfigTest" time="0.002"/>
-  <testcase name="givenInvalidFormat_whenParseFecha_thenThrowException" classname="com.viewnext.facturabatch.config.BatchConfigTest" time="0.003"/>
+  <testcase name="givenStepExecution_whenAfterStep_thenReturnsNull" classname="com.viewnext.facturabatch.listener.StepTimeoutListenerTest" time="0.013">
+    <system-out><![CDATA[2026-07-13T12:36:04.305+02:00  INFO 19328 --- [           main] c.v.f.listener.StepTimeoutListener       : ?  Step 'extractFacturasStep' iniciado — timeout configurado en 3600 segundos.
+2026-07-13T12:36:04.306+02:00  INFO 19328 --- [           main] c.v.f.listener.StepTimeoutListener       : ?  Step 'extractFacturasStep' finalizado antes del timeout. Watchdog cancelado.
+]]></system-out>
+  </testcase>
+  <testcase name="givenStepExecution_whenBeforeStep_thenNoException" classname="com.viewnext.facturabatch.listener.StepTimeoutListenerTest" time="0.007">
+    <system-out><![CDATA[2026-07-13T12:36:04.315+02:00  INFO 19328 --- [           main] c.v.f.listener.StepTimeoutListener       : ?  Step 'extractFacturasStep' iniciado — timeout configurado en 3600 segundos.
+]]></system-out>
+  </testcase>
+  <testcase name="givenStepFinishedBeforeTimeout_whenAfterStep_thenWatchdogCancelledAndSetTerminateOnlyNeverCalled" classname="com.viewnext.facturabatch.listener.StepTimeoutListenerTest" time="0.007">
+    <system-out><![CDATA[2026-07-13T12:36:04.322+02:00  INFO 19328 --- [           main] c.v.f.listener.StepTimeoutListener       : ?  Step 'extractFacturasStep' iniciado — timeout configurado en 3600 segundos.
+2026-07-13T12:36:04.324+02:00  INFO 19328 --- [           main] c.v.f.listener.StepTimeoutListener       : ?  Step 'extractFacturasStep' finalizado antes del timeout. Watchdog cancelado.
+]]></system-out>
+  </testcase>
+  <testcase name="givenNoBeforeStep_whenAfterStep_thenNoException" classname="com.viewnext.facturabatch.listener.StepTimeoutListenerTest" time="0.005"/>
+  <testcase name="givenTimeoutExpired_whenBeforeStep_thenSetTerminateOnlyCalled" classname="com.viewnext.facturabatch.listener.StepTimeoutListenerTest" time="0.309">
+    <system-out><![CDATA[2026-07-13T12:36:04.339+02:00  INFO 19328 --- [           main] c.v.f.listener.StepTimeoutListener       : ?  Step 'extractFacturasStep' iniciado — timeout configurado en 0 segundos.
+2026-07-13T12:36:04.341+02:00  WARN 19328 --- [imeout-watchdog] c.v.f.listener.StepTimeoutListener       : ??  Step 'extractFacturasStep' ha superado el timeout de 0 segundos. Solicitando parada controlada...
+]]></system-out>
+  </testcase>
+  <testcase name="givenTimeoutFired_whenAfterStep_thenNoException" classname="com.viewnext.facturabatch.listener.StepTimeoutListenerTest" time="0.31">
+    <system-out><![CDATA[2026-07-13T12:36:04.648+02:00  INFO 19328 --- [           main] c.v.f.listener.StepTimeoutListener       : ?  Step 'extractFacturasStep' iniciado — timeout configurado en 0 segundos.
+2026-07-13T12:36:04.649+02:00  WARN 19328 --- [imeout-watchdog] c.v.f.listener.StepTimeoutListener       : ??  Step 'extractFacturasStep' ha superado el timeout de 0 segundos. Solicitando parada controlada...
+]]></system-out>
+  </testcase>
 </testsuite>
