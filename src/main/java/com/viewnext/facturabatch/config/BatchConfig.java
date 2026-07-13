@@ -1,6 +1,7 @@
 package com.viewnext.facturabatch.config;
 
 import com.viewnext.facturabatch.listener.JobCompletionListener;
+import com.viewnext.facturabatch.listener.StepTimeoutListener;
 import com.viewnext.facturabatch.mapper.FacturaRowMapper;
 import com.viewnext.facturabatch.model.Factura;
 import org.springframework.batch.core.Job;
@@ -47,6 +48,7 @@ public class BatchConfig {
     /** Base directory where output files are written. */
     @Value("${output.path:./output}")
     private String outputPath;
+
 
     // ── SQL ─────────────────────────────────────────────────────────────────────
 
@@ -164,18 +166,22 @@ public class BatchConfig {
     /**
      * Chunk-oriented step that reads, (optionally processes) and writes invoices.
      * Chunk size of 10 balances memory usage and DB transaction overhead.
+     *
+     * <p>El step se cancelará automáticamente si supera {@code batch.job.timeout-seconds}.
      */
     @Bean
     public Step extractFacturasStep(
             JobRepository jobRepository,
             PlatformTransactionManager transactionManager,
             JdbcCursorItemReader<Factura> facturaItemReader,
-            CompositeItemWriter<Factura> compositeFacturaWriter) {
+            CompositeItemWriter<Factura> compositeFacturaWriter,
+            StepTimeoutListener stepTimeoutListener) {
 
         return new StepBuilder("extractFacturasStep", jobRepository)
                 .<Factura, Factura>chunk(10, transactionManager)
                 .reader(facturaItemReader)
                 .writer(compositeFacturaWriter)
+                .listener(stepTimeoutListener)
                 .build();
     }
 

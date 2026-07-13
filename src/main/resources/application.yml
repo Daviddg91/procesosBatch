@@ -16,6 +16,27 @@ spring:
 output:
   path: ./output
 
+# ── Configuración del batch ────────────────────────────────────────────────────
+batch:
+  schedule:
+    # Expresión cron: segundo minuto hora día-mes mes día-semana
+    # Por defecto: todos los días a las 02:00
+    # Ejemplos:
+    #   "0 0 2 * * *"       → cada día a las 02:00
+    #   "0 30 8 * * MON-FRI" → lunes a viernes a las 08:30
+    cron: "0 0 2 * * *"
+    # Zona horaria para la expresión cron (por defecto: Europe/Madrid)
+    time-zone: "Europe/Madrid"
+  job:
+    # Duración máxima permitida del job en segundos.
+    # Si el step supera este límite se cancela con error.
+    # Por defecto: 3600 s (1 hora)
+    timeout-seconds: 3600
+    # Fecha de extracción en formato yyyy-MM-dd.
+    # Si está vacío se usa la fecha del día de ejecución.
+    # Útil para reprocesar fechas históricas sin recompilar.
+    fecha: ""
+
 logging:
   level:
     com.viewnext: DEBUG
