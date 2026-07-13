@@ -20,6 +20,8 @@ mvn  -version   # debe mostrar Maven 3.x
 
 ### Caso 1 — Extraer facturas de HOY (caso más habitual)
 
+> Requiere el perfil `local` para que `LocalDemoRunner` ejecute el job al arrancar.
+
 ```bash
 mvn spring-boot:run "-Dspring-boot.run.profiles=local"
 ```
@@ -88,7 +90,7 @@ mvn test -Dtest=ExtractFacturasEnd2EndTest#e2e05_Idempotencia_RejecutarJobNoExtr
 Extrae facturas de una fecha pasada pasando el parámetro `--fecha`:
 
 ```bash
-mvn spring-boot:run "-Dspring-boot.run.profiles=local" "-Dspring-boot.run.arguments=--fecha=2023-03-15"
+mvn spring-boot:run "-Dspring-boot.run.arguments=--fecha=2023-03-15"
 ```
 
 Como los datos de demo no contienen facturas con esa fecha, el CSV se generará **solo con cabecera**:
@@ -148,8 +150,7 @@ Por cada ejecución genera:
 | Java              | 17       |
 | Spring Boot       | 3.2.0    |
 | Spring Batch      | 5.x      |
-| Oracle JDBC       | 23.2.0.0 |
-| H2 (local/tests)  | -        |
+| H2 (en memoria)   | -        |
 | Lombok            | -        |
 | JUnit 5 + Mockito | -        |
 
@@ -216,7 +217,7 @@ src/
 
 ### Arrancar en modo local
 
-**Opción A — Sin compilar (Maven):**
+**Opción A — Sin compilar (Maven), ejecución inmediata:**
 ```bash
 mvn spring-boot:run "-Dspring-boot.run.profiles=local"
 ```
@@ -226,15 +227,20 @@ mvn spring-boot:run "-Dspring-boot.run.profiles=local"
 # 1. Compilar
 mvn clean package -DskipTests
 
-# 2. Ejecutar
+# 2. Ejecutar con perfil local (job al arrancar)
 java -Dspring.profiles.active=local -jar target/factura-batch-1.0.0-SNAPSHOT.jar
 ```
 
-**Opción C — Extracción histórica en modo local:**
+**Opción C — Extraccion historica:**
 ```bash
-java -Dspring.profiles.active=local \
-     -jar target/factura-batch-1.0.0-SNAPSHOT.jar \
-     --fecha=2023-03-15
+java -Dspring.profiles.active=local -jar target/factura-batch-1.0.0-SNAPSHOT.jar --fecha=2023-03-15
+```
+
+**Opción D — Solo contexto Spring Boot, sin ejecución inmediata (job por cron):**
+```bash
+mvn spring-boot:run
+# o bien:
+java -jar target/factura-batch-1.0.0-SNAPSHOT.jar
 ```
 
 ### Salida esperada en consola
@@ -267,33 +273,6 @@ PRV0004;FACT-LOCAL-004;499.99;EUR;2026-07-13;ES2837023590123456789012
 
 ---
 
-## Configuración de la base de datos Oracle (producción)
-
-### 1. Crear la tabla `facturas`
-
-Ejecutar el script `src/main/resources/sql/oracle_schema.sql`.
-
-> **Nota sobre nombres de columna:** El DDL incluye dos variantes:
-> - **Versión A** (con acento, identificadores entrecomillados).
-> - **Versión B** (sin acento) – **usada por defecto en el código Java**.
-
-### 2. Crear las tablas internas de Spring Batch
-
-```sql
--- Ejecutar el script incluido en el jar de Spring Batch:
--- META-INF/spring-batch/schema-oracle10g.sql
-```
-
-O bien configurar `spring.batch.jdbc.initialize-schema=always` una sola vez.
-
-### 3. Variables de entorno
-
-| Variable          | Por defecto | Descripción         |
-|-------------------|-------------|---------------------|
-| `ORACLE_USER`     | `system`    | Usuario Oracle      |
-| `ORACLE_PASSWORD` | `oracle`    | Contraseña Oracle   |
-
----
 
 ## Configuración del proceso batch (`application.yml`)
 
@@ -320,7 +299,14 @@ batch.job.fecha: "2024-03-15"
 
 ---
 
-## Ejecución con Oracle (producción)
+## Ejecución
+
+### Dos modos de arranque
+
+| Modo | Comando | Comportamiento |
+|------|---------|---------------|
+| **Local** (demo) | `mvn spring-boot:run "-Dspring-boot.run.profiles=local"` | Ejecuta el job inmediatamente al arrancar |
+| **Normal** (cron) | `mvn spring-boot:run` | Arranca el contexto; el job se dispara según `batch.schedule.cron` |
 
 ### Compilar y empaquetar
 
@@ -328,16 +314,22 @@ batch.job.fecha: "2024-03-15"
 mvn clean package -DskipTests
 ```
 
-### Extraer facturas de **hoy**
+### Ejecutar con perfil local (job inmediato)
 
 ```bash
-java -jar target/factura-batch-1.0.0-SNAPSHOT.jar
+java -Dspring.profiles.active=local -jar target/factura-batch-1.0.0-SNAPSHOT.jar
 ```
 
 ### Extraer facturas de una **fecha histórica**
 
 ```bash
-java -jar target/factura-batch-1.0.0-SNAPSHOT.jar --fecha=2023-03-15
+java -Dspring.profiles.active=local -jar target/factura-batch-1.0.0-SNAPSHOT.jar --fecha=2023-03-15
+```
+
+### Arrancar solo el contexto (sin ejecución inmediata)
+
+```bash
+java -jar target/factura-batch-1.0.0-SNAPSHOT.jar
 ```
 
 El fichero de salida se genera en `./output/facturas_{fecha}.csv`.

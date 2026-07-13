@@ -1,40 +1,4 @@
-# ══════════════════════════════════════════════════════════════════════════════
-#  Perfil LOCAL / DEMO
-#  Permite arrancar la aplicación sin Oracle usando H2 en memoria.
-#  Actívalo con:  -Dspring.profiles.active=local
-# ══════════════════════════════════════════════════════════════════════════════
-
-spring:
-  datasource:
-    url: jdbc:h2:mem:localdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;MODE=Oracle
-    username: sa
-    password:
-    driver-class-name: org.h2.Driver
-
-  batch:
-    job:
-      enabled: false          # El job lo lanza LocalDemoRunner manualmente
-    jdbc:
-      initialize-schema: always   # Spring Batch crea sus tablas internas en H2
-
-  sql:
-    init:
-      mode: always
-      schema-locations: classpath:schema.sql      # crea la tabla facturas
-      data-locations:   classpath:data-local.sql  # carga los datos de demo
-
-# Desactivar el scheduler planificado (BatchRunner).
-# En local el job se lanza al arrancar vía LocalDemoRunner.
+# Perfil local: desactiva el cron (LocalDemoRunner lanza el job al arrancar)
 batch:
   schedule:
     cron: "-"
-
-output:
-  path: ./output
-
-logging:
-  level:
-    com.viewnext: DEBUG
-    org.springframework.batch: INFO
-    org.springframework.jdbc.datasource.init: DEBUG   # muestra la ejecución del SQL de init
-

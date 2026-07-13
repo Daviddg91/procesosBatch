@@ -7,8 +7,7 @@ import com.viewnext.facturabatch.mapper.FacturaRowMapper;
 import com.viewnext.facturabatch.model.Factura;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
-import org.springframework.batch.core.job.builder.JobBuilder;
-import org.springframework.batch.core.repository.JobRepository;
+import org.springframework.batch.core.job.builder.JobBuilder;import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.item.database.JdbcBatchItemWriter;
 import org.springframework.batch.item.database.JdbcCursorItemReader;
@@ -45,6 +44,7 @@ import java.util.List;
  */
 @Configuration
 public class BatchConfig {
+
 
     /** Base directory where output files are written. */
     @Value("${output.path:./output}")

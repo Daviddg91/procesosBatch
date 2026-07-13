@@ -35,13 +35,6 @@
             <artifactId>spring-boot-starter-jdbc</artifactId>
         </dependency>
 
-        <!-- Oracle JDBC Driver (disponible en Maven Central desde Oracle 19c+) -->
-        <dependency>
-            <groupId>com.oracle.database.jdbc</groupId>
-            <artifactId>ojdbc11</artifactId>
-            <version>23.2.0.0</version>
-            <scope>runtime</scope>
-        </dependency>
 
         <!-- Lombok -->
         <dependency>

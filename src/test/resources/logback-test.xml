@@ -38,5 +38,13 @@
         <appender-ref ref="CONSOLE"/>
     </root>
 
+    <!--
+      Suprime el warning cosmético de Spring Batch 5.x sobre BatchProperties
+      no elegible para BeanPostProcessor (no afecta al funcionamiento).
+    -->
+    <logger name="org.springframework.context.support.PostProcessorRegistrationDelegate" level="ERROR" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+    </logger>
+
 </configuration>
 

@@ -15,25 +15,25 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDate;
 
 /**
- * Runner de demostración para el perfil <b>local</b>.
+ * Runner de demostracion activo unicamente con el perfil <b>local</b>.
  *
- * <p>Lanza el job de extracción de facturas inmediatamente al arrancar la aplicación
- * utilizando la base de datos H2 en memoria cargada con los datos de {@code data-local.sql}.
+ * <p>Lanza el job al arrancar la aplicacion usando H2 en memoria
+ * con los datos de {@code data-local.sql}.
+ *
+ * <p>Sin este perfil, la aplicacion arranca el contexto Spring Boot
+ * normalmente y el job solo se ejecuta segun el cron configurado
+ * en {@code batch.schedule.cron}.
  *
  * <p>Activar con:
  * <pre>
- *   # Con Maven (sin compilar JAR)
- *   mvn spring-boot:run -Dspring-boot.run.profiles=local
- *
- *   # Con JAR ya empaquetado
+ *   # Ejecucion inmediata (perfil local)
+ *   mvn spring-boot:run "-Dspring-boot.run.profiles=local"
  *   java -Dspring.profiles.active=local -jar target/factura-batch-1.0.0-SNAPSHOT.jar
  *
- *   # Extracción histórica en modo local
- *   java -Dspring.profiles.active=local -jar target/factura-batch-1.0.0-SNAPSHOT.jar --fecha=2023-03-15
+ *   # Solo contexto, job por cron (sin perfil)
+ *   mvn spring-boot:run
+ *   java -jar target/factura-batch-1.0.0-SNAPSHOT.jar
  * </pre>
- *
- * <p>El scheduler periódico ({@link BatchRunner}) está desactivado en el perfil local
- * ({@code batch.schedule.cron: "-"}), por lo que el job solo se ejecuta una vez al arranque.
  */
 @Slf4j
 @Component
