@@ -1,0 +1,22 @@
+spring:
+  datasource:
+    url: jdbc:oracle:thin:@localhost:1521/XEPDB1
+    username: ${ORACLE_USER:system}
+    password: ${ORACLE_PASSWORD:oracle}
+    driver-class-name: oracle.jdbc.OracleDriver
+  batch:
+    job:
+      # Disable Spring Boot's auto-run; BatchRunner controls the launch
+      enabled: false
+    jdbc:
+      # Spring Batch tables must be created manually in Oracle
+      # See src/main/resources/sql/oracle_schema.sql for the DDL
+      initialize-schema: never
+
+output:
+  path: ./output
+
+logging:
+  level:
+    com.viewnext: DEBUG
+    org.springframework.batch: INFO

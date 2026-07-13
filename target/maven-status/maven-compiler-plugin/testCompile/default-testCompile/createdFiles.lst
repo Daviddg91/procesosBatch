@@ -1,0 +1,3 @@
+com\viewnext\facturabatch\mapper\FacturaRowMapperTest.class
+com\viewnext\facturabatch\e2e\ExtractFacturasEnd2EndTest.class
+com\viewnext\facturabatch\config\BatchConfigTest.class
